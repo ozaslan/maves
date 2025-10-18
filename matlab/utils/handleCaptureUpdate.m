@@ -252,7 +252,9 @@ else
     resetFrameBuffer();
 end
 
-    function resetFrameBuffer()
+end
+
+function resetFrameBuffer()
         frameBuffer = {};
         frameBufferCount = 0;
         bufferTimestamp = '';
@@ -265,5 +267,3 @@ end
             params.sim.capture.bufferedFrames = {};
         end
     end
-
-end
