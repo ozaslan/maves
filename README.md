@@ -53,16 +53,9 @@ Each scenario demonstrates how controller tuning, trajectory design, and vehicle
 | **Diamond-03** | Reduced derivative gain introduces oscillations and marginal stability. | ![Diamond-03](matlab/screenshots/sim-diamond-03.png) |
 
 ### Circular Trajectory (Video)
-The simulator can also record video captures of the full arena visualization.  
-The following clip shows a circular trajectory tracking experiment using the nominal PD controller:
 
-<p align="center">
-  <video src="https://github.com/ozaslan/maves/raw/main/matlab/screenshots/sim-circle-01.avi" width="640" controls>
-    Your browser does not support embedded videos.  
-    <a href="https://github.com/ozaslan/maves/raw/main/matlab/screenshots/sim-circle-01.avi">Download the video here.</a>
-  </video>
-</p>
+Circular trajectory tracking with the nominal PD controller.
 
----
+https://github.com/user-attachments/assets/1b9610a2-6565-4ad8-ab6d-98f036cf52fa
 
-These visualizations highlight how MAVES can be used to explore controller performance, tuning, and dynamic effects in an educational setting.
+Also on YouTube: https://youtu.be/9i_f6V2WODo
