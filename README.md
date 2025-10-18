@@ -31,3 +31,38 @@ The `matlab/runsim.m` script wires together the core simulator, helper utilities
 - Customize testing scenarios by supplying additional arena files under `matlab/arenas` and selecting them via `setArena('name')`. Controllers can query the current limits with `getArenaLimits()` to stay inside the course.
 
 With these building blocks, MAVES provides a compact environment for experimenting with VTOL guidance, navigation, and control strategies entirely within MATLAB.
+
+## Simulation Gallery
+
+The following examples illustrate MAVES in action under different trajectory and controller configurations.  
+Each scenario demonstrates how controller tuning, trajectory design, and vehicle parameters influence VTOL behavior.
+
+### Hover Control
+| Case | Description | Preview |
+|------|--------------|----------|
+| **Hover-01** | Aggressive proportional gain with minimal damping. The vehicle overshoots the target altitude before settling. | ![Hover-01](matlab/screenshots/sim-hover-01.png) |
+| **Hover-02** | Increased derivative gain yields smooth exponential convergence to the setpoint. | ![Hover-02](matlab/screenshots/sim-hover-02.png) |
+| **Hover-03** | Controller mass underestimated by 10 %; steady-state error remains. | ![Hover-03](matlab/screenshots/sim-hover-03.png) |
+| **Hover-04** | Integral action compensates the bias, eliminating steady-state error. | ![Hover-04](matlab/screenshots/sim-hover-04.png) |
+
+### Diamond Trajectory Tracking
+| Case | Description | Preview |
+|------|--------------|----------|
+| **Diamond-01** | Moderate PID gains produce noticeable steady-state error during path tracking. | ![Diamond-01](matlab/screenshots/sim-diamond-01.png) |
+| **Diamond-02** | PD gains increased fivefold improve trajectory adherence but raise control effort. | ![Diamond-02](matlab/screenshots/sim-diamond-02.png) |
+| **Diamond-03** | Reduced derivative gain introduces oscillations and marginal stability. | ![Diamond-03](matlab/screenshots/sim-diamond-03.png) |
+
+### Circular Trajectory (Video)
+The simulator can also record video captures of the full arena visualization.  
+The following clip shows a circular trajectory tracking experiment using the nominal PD controller:
+
+<p align="center">
+  <video src="https://github.com/ozaslan/maves/raw/main/matlab/screenshots/sim-circle-01.avi" width="640" controls>
+    Your browser does not support embedded videos.  
+    <a href="https://github.com/ozaslan/maves/raw/main/matlab/screenshots/sim-circle-01.avi">Download the video here.</a>
+  </video>
+</p>
+
+---
+
+These visualizations highlight how MAVES can be used to explore controller performance, tuning, and dynamic effects in an educational setting.
