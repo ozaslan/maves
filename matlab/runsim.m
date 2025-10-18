@@ -84,7 +84,7 @@ setVisualizationMode(visualizationMode);
 % Choose whether to save the arena visualization to disk. When set to
 % 'save', the simulator records an MPEG-4 video while running in live mode
 % and exports a PNG image of the final frame when running in deferred mode.
-captureMode = 'none';  % Options: 'save', 'none'
+captureMode = 'save';  % Options: 'save', 'none'
 setCaptureMode(captureMode);
 
 %% Main Loop
