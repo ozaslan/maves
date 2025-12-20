@@ -175,7 +175,8 @@ else
         case 4
             pidLabel = sprintf('PID: Kp=%.3g, Ki=%.3g, Kd=%.3g, Lim=%.3g', pidParams);
         otherwise
-            pidLabel = sprintf('PID: %s', mat2str(pidParams, 3));
+            pidLabel = 'Not supported';
+            % pidLabel = sprintf('PID: %s', mat2str(pidParams, 3));
     end
 end
 set(handles.pid, 'String', pidLabel);

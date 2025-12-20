@@ -9,15 +9,15 @@ function setController(hCtrl, ctrlParams)
 
 global params;
 
-if nargin < 2
-    ctrlParams = [];
-elseif ~(isnumeric(ctrlParams) && isvector(ctrlParams) && ...
-        (numel(ctrlParams) == 3 || numel(ctrlParams) == 4))
-    error(['Controller parameters must be provided as a numeric vector ', ...
-        'with three (PID) or four (PID + integral limit) elements.']);
-else
-    ctrlParams = ctrlParams(:);
-end
+% if nargin < 2
+%     ctrlParams = [];
+% elseif ~(isnumeric(ctrlParams) && isvector(ctrlParams) && ...
+%         (numel(ctrlParams) == 3 || numel(ctrlParams) == 4))
+%     error(['Controller parameters must be provided as a numeric vector ', ...
+%         'with three (PID) or four (PID + integral limit) elements.']);
+% else
+%     ctrlParams = ctrlParams(:);
+% end
 
 params.controller = hCtrl;
 params.controllerParams = ctrlParams;

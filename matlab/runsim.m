@@ -58,9 +58,9 @@ r  = 0.5; % Circular trajectory radius
 % instruction in your development.
 
 % setTrajectoryGenerator(@trajHover, p0);
-% setTrajectoryGenerator(@trajLine, p0, p1, tF);
+setTrajectoryGenerator(@trajLine, p0, p1, tF);
 % setTrajectoryGenerator(@trajDiamond, p0, p1, p2, p3, tF);
-setTrajectoryGenerator(@trajCircle, p0, r, tF);
+% setTrajectoryGenerator(@trajCircle, p0, r, tF);
 
 
 %% Control
@@ -70,7 +70,20 @@ setTrajectoryGenerator(@trajCircle, p0, r, tF);
 pidGains = [3; 1.0; 2];
 integralLimit = 5.0;
 
-setController(@controller, [pidGains; integralLimit]);
+% setController(@controller, [pidGains; integralLimit]);
+
+p = struct();
+p.x_max     = 0.5;          % meters
+p.y_max     = 0.5;          % meters
+p.xd_max    = 1.0;          % m/s
+p.yd_max    = 1.0;          % m/s
+p.th_max    = deg2rad(10);  % radians
+p.Fdev_max  = 0.3;          % fraction of mg (=> +/-0.3*mg)
+p.R_F_scale = 1.0;
+p.R_th_scale= 1.0;
+
+setController(@controller_lqr, p);
+
 
 %% Visualization Mode
 % Choose how plots are updated during the simulation. Use 'live' to maintain
