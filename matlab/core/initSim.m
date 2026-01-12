@@ -9,7 +9,9 @@ end
 
 state = [];
 
+state.sim.wallStart    = tic;
 state.sim.wallStamp    = tic;
+state.sim.wallTime     = NaN;
 state.sim.stamp        = 0;
 state.sim.step         = 0;
 state.qcopter.pose     = [0; 0; 0];

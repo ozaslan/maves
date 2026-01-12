@@ -12,8 +12,7 @@ activeScenario = 'line-default';
 scenario = chooseScenario(activeScenario);
 
 initialize();
-global state;
-state.scenario = scenario;
+setScenario(scenario);
 respawn();
 
 setTrajectoryGenerator(scenario.trajHandle, scenario.trajParams);
