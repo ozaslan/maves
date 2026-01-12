@@ -81,3 +81,4 @@ end
 
 save(databaseFile, 'database');
 fprintf('Saved scenario database to: %s\n', databaseFile);
+printScenarioDatabaseTable(databaseFile);
