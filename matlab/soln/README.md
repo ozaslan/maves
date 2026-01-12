@@ -68,9 +68,10 @@ The extra derivatives support feed-forward terms in the controller.
   and higher derivatives remain zero.
 
 ### `trajCircle.m`
-- **Purpose**: Trace a circular path centered at `p` with radius `r`, completed
-  in `tEnd` seconds.
-- **Inputs**: `t`, `s`, center `p`, radius `r`, completion time `tEnd`.
+- **Purpose**: Trace a circular path centered at `p` with radius `r`, starting
+  at `startAngle`, completed in `tEnd` seconds.
+- **Inputs**: `t`, `s`, center `p`, radius `r`, starting angle `startAngle`,
+  and completion time `tEnd` (or omit `startAngle` to default to zero).
 - **Output**: Desired position on the circle with corresponding velocity and
   acceleration derived analytically. After `tEnd` the state freezes at the
   final point. Yaw and its derivatives are maintained at zero.
