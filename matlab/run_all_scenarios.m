@@ -39,6 +39,7 @@ for idx = 1:numel(scenarioNames)
 
     initialize();
     global params;
+    global state;
     setScenario(scenario);
 
     params.qcopter.visual.plotFreq = 0;
