@@ -6,7 +6,11 @@ function metrics = summarizeRun()
 
 global state;
 
-metrics = struct('rmse', NaN, 'maxError', NaN);
+metrics = struct('rmse', NaN, ...
+    'maxError', NaN, ...
+    'minError', NaN, ...
+    'totalTrajectoryTime', NaN, ...
+    'totalFlightTime', NaN);
 
 if ~isfield(state, 'qcopter') || isempty(state.qcopter)
     return;
@@ -29,8 +33,25 @@ refPos = trajHist(2:3, :);
 
 metrics.rmse = rmse;
 metrics.maxError = maxError;
+if isempty(errorMag)
+    metrics.minError = NaN;
+else
+    metrics.minError = min(errorMag, [], 'omitnan');
+end
+metrics.totalTrajectoryTime = getTotalDuration(tRef);
+metrics.totalFlightTime = getTotalDuration(tActual);
 
-summaryTable = table(rmse, maxError, 'VariableNames', {'RMSE', 'MaxError'});
+[scenarioName, trajType, trajProfile, controllerType, controllerProfile, controllerParams] = ...
+    getScenarioSummary(state);
+
+summaryTable = table( ...
+    scenarioName, trajType, trajProfile, controllerType, controllerProfile, controllerParams, ...
+    metrics.totalTrajectoryTime, metrics.totalFlightTime, ...
+    metrics.minError, metrics.maxError, metrics.rmse, ...
+    'VariableNames', { ...
+    'Scenario', 'TrajectoryType', 'TrajectoryProfile', ...
+    'ControllerType', 'ControllerProfile', 'ControllerParams', ...
+    'TotalTrajectoryTime', 'TotalFlightTime', 'MinError', 'MaxError', 'RMSE'});
 disp('Run Summary Metrics:');
 disp(summaryTable);
 
@@ -106,4 +127,77 @@ tCmd = cmdHist(1, :);
 forces = cmdHist(4:5, :);
 controlEffort = sum(forces, 1);
 
+end
+
+function duration = getTotalDuration(tSeries)
+if isempty(tSeries)
+    duration = NaN;
+    return;
+end
+duration = tSeries(end) - tSeries(1);
+end
+
+function [scenarioName, trajType, trajProfile, controllerType, controllerProfile, controllerParams] = ...
+    getScenarioSummary(state)
+scenarioName = "unknown";
+trajType = "unknown";
+trajProfile = "unknown";
+controllerType = "unknown";
+controllerProfile = "unknown";
+controllerParams = "unknown";
+
+if ~isfield(state, 'scenario') || isempty(state.scenario)
+    return;
+end
+
+scenario = state.scenario;
+
+if isfield(scenario, 'name') && ~isempty(scenario.name)
+    scenarioName = string(scenario.name);
+end
+if isfield(scenario, 'trajPreset') && ~isempty(scenario.trajPreset)
+    trajType = string(func2str(scenario.trajPreset));
+elseif isfield(scenario, 'trajHandle') && ~isempty(scenario.trajHandle)
+    trajType = string(func2str(scenario.trajHandle));
+end
+if isfield(scenario, 'trajProfile') && ~isempty(scenario.trajProfile)
+    trajProfile = string(scenario.trajProfile);
+end
+if isfield(scenario, 'controllerType') && ~isempty(scenario.controllerType)
+    controllerType = string(scenario.controllerType);
+end
+if isfield(scenario, 'controllerProfile') && ~isempty(scenario.controllerProfile)
+    controllerProfile = string(scenario.controllerProfile);
+end
+if isfield(scenario, 'controllerParams')
+    controllerParams = formatParams(scenario.controllerParams);
+end
+end
+
+function valueText = formatParams(value)
+if isempty(value)
+    valueText = "[]";
+    return;
+end
+if isstring(value) || ischar(value)
+    valueText = string(value);
+    return;
+end
+if isnumeric(value) || islogical(value)
+    valueText = string(mat2str(value));
+    return;
+end
+if isstruct(value)
+    if exist('jsonencode', 'builtin') == 5 || exist('jsonencode', 'file') == 2
+        valueText = string(jsonencode(value));
+    else
+        valueText = string(strtrim(evalc('disp(value)')));
+    end
+    return;
+end
+if iscell(value)
+    valueText = string(strtrim(evalc('disp(value)')));
+    return;
+end
+valueText = string(class(value));
 end

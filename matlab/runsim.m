@@ -12,6 +12,8 @@ activeScenario = 'line-default';
 scenario = chooseScenario(activeScenario);
 
 initialize();
+global state;
+state.scenario = scenario;
 respawn();
 
 setTrajectoryGenerator(scenario.trajHandle, scenario.trajParams);
@@ -35,18 +37,4 @@ drawnow();
 
 summarizeRun();
 
-% Optional PSD-based control effort analysis (motor thrust fluctuations).
-if exist('maves_psd_report', 'file') == 2
-    try
-        global state;
-        psdParams = struct( ...
-            'tWindow', [], ...
-            'cutoffsHz', [20 30 50], ...
-            'bandLimitHz', [0 100], ...
-            'outputDir', fullfile(pwd, 'psd_outputs'), ...
-            'outputCsv', fullfile(pwd, 'psd_outputs', 'metrics_single.csv'));
-        maves_psd_report(state.qcopter, psdParams);
-    catch psdErr
-        warning('PSD report skipped: %s', psdErr.message);
-    end
-end
+runPsdReport();
