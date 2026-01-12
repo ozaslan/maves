@@ -2,6 +2,11 @@ function initSim()
 
 global state;
 
+previousScenario = [];
+if isstruct(state) && isfield(state, 'scenario')
+    previousScenario = state.scenario;
+end
+
 state = [];
 
 state.sim.wallStamp    = tic;
@@ -18,3 +23,7 @@ state.qcopter.cmd      = struct('stamp', [], ...
                                 'thDes', [], ...
                                 'thDotDes', [], ...
                                 'forces', []);
+
+if ~isempty(previousScenario)
+    state.scenario = previousScenario;
+end
