@@ -1,4 +1,4 @@
-function sT = trajCircle(t, s, p, r, tEnd)
+function sT = trajCircle(t, s, p, r, startAngle, tEnd)
 %TRAJLINE Generate circular path following trajectory
 %
 %   As its name suggests, this trajectory generator should produce a
@@ -10,6 +10,7 @@ function sT = trajCircle(t, s, p, r, tEnd)
 %          'getStateVector' function's return value.
 %   p    : center of circle, 2-by-1 vector in the form [x; y]
 %   r    : radius of circle, a scalar value
+%   startAngle : starting angle (radians) along the circle
 %   tEnd : time stamp by which the robot should complete the parkour
 %
 %   This function should return a 9-by-1 column vector with structure
@@ -22,6 +23,12 @@ assert(isscalar(t));
 assert(all(size(s) == [8, 1]));
 assert(all(size(p) == [2, 1]));
 assert(isscalar(r));
+if nargin < 6
+    tEnd = startAngle;
+    startAngle = 0;
+end
+
+assert(isscalar(startAngle));
 assert(isscalar(tEnd));
 
 sT = zeros(9, 1);
@@ -32,19 +39,20 @@ if t > tEnd
     t = tEnd;
 end
 
-sT(1) = r * cos(t * dth) + p(1);
-sT(2) = r * sin(t * dth) + p(2);
+theta = startAngle + t * dth;
+
+sT(1) = r * cos(theta) + p(1);
+sT(2) = r * sin(theta) + p(2);
 sT(3) = 0;
 
 if t < tEnd
-    sT(4) = -dth * r * sin(t * dth);
-    sT(5) =  dth * r * cos(t * dth);
+    sT(4) = -dth * r * sin(theta);
+    sT(5) =  dth * r * cos(theta);
     sT(6) = 0;
-    sT(7) = -dth^2 * r * cos(t * dth);
-    sT(8) = -dth^2 * r * sin(t * dth);
+    sT(7) = -dth^2 * r * cos(theta);
+    sT(8) = -dth^2 * r * sin(theta);
     sT(9) = 0;
 end
-
 
 
 
