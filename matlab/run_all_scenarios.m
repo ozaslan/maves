@@ -47,6 +47,7 @@ for idx = 1:numel(scenarioNames)
                 'captureMode', 'none');
 
             initialize();
+            setSolverPreset('balanced', 'ode45');
             global params;
             global state;
             setScenario(scenario);

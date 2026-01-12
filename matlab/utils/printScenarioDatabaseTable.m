@@ -40,19 +40,23 @@ end
 runs = database.runs;
 runCount = numel(runs);
 
-summaryTable = table('Size', [runCount, 22], ...
+summaryTable = table('Size', [runCount, 27], ...
     'VariableTypes', { ...
-    'double', 'string', 'string', 'string', 'string', 'string', 'string', ...
-    'string', 'string', 'string', 'string', 'double', 'double', 'double', ...
+    'double', ...
+    'string', 'string', 'string', 'string', 'string', 'string', 'string', ...
+    'string', 'string', 'string', 'string', ...
+    'double', 'double', 'double', ...
+    'string', ...
     'double', 'double', 'double', 'double', 'double', 'double', 'double', ...
-    'double'}, ...
+    'double', 'double', 'double', 'double'}, ...
     'VariableNames', { ...
     'RunIndex', 'Scenario', 'TrajectoryType', 'TrajectoryProfile', 'TrajectoryParams', ...
     'ControllerType', 'ControllerProfile', 'ControllerParams', 'VisualizationMode', ...
-    'CaptureMode', 'GeneratedAt', 'SimSteps', 'TotalTrajectoryTime', ...
-    'TotalFlightTime', 'TotalWallTime', 'MinError', 'MaxError', 'RMSE', ...
-    'ControlEffortMean', 'ControlEffortRms', 'ControlEffortPeak', ...
-    'ControlEffortImpulse'});
+    'CaptureMode', 'SolverPreset', 'SolverMethod', 'SolverTimeStep', ...
+    'SolverRelTol', 'SolverAbsTol', 'GeneratedAt', 'SimSteps', ...
+    'TotalTrajectoryTime', 'TotalFlightTime', 'TotalWallTime', 'MinError', ...
+    'MaxError', 'RMSE', 'ControlEffortMean', 'ControlEffortRms', ...
+    'ControlEffortPeak', 'ControlEffortImpulse'});
 
 generatedAt = string(NaT);
 if isfield(database, 'generatedAt') && ~isempty(database.generatedAt)
@@ -64,6 +68,8 @@ for idx = 1:runCount
     [scenarioName, trajType, trajProfile, trajParams, controllerType, ...
         controllerProfile, controllerParams, visualizationMode, captureMode] = ...
         getScenarioDetails(run);
+    [solverPreset, solverMethod, solverTimeStep, solverRelTol, solverAbsTol] = ...
+        getSolverDetails(run);
     metrics = getRunMetrics(run);
     [effortMean, effortRms, effortPeak, effortImpulse] = getControlEffortMetrics(run);
     simSteps = getSimSteps(run);
@@ -78,6 +84,11 @@ for idx = 1:runCount
     summaryTable.ControllerParams(idx) = controllerParams;
     summaryTable.VisualizationMode(idx) = visualizationMode;
     summaryTable.CaptureMode(idx) = captureMode;
+    summaryTable.SolverPreset(idx) = solverPreset;
+    summaryTable.SolverMethod(idx) = solverMethod;
+    summaryTable.SolverTimeStep(idx) = solverTimeStep;
+    summaryTable.SolverRelTol(idx) = solverRelTol;
+    summaryTable.SolverAbsTol(idx) = solverAbsTol;
     summaryTable.GeneratedAt(idx) = generatedAt;
     summaryTable.SimSteps(idx) = simSteps;
     summaryTable.TotalTrajectoryTime(idx) = metrics.totalTrajectoryTime;
@@ -169,6 +180,35 @@ if isfield(run, 'metrics') && ~isempty(run.metrics)
             metrics.(field) = runMetrics.(field);
         end
     end
+end
+end
+
+function [preset, method, timeStep, relTol, absTol] = getSolverDetails(run)
+preset = "unknown";
+method = "unknown";
+timeStep = NaN;
+relTol = NaN;
+absTol = NaN;
+
+if ~isfield(run, 'sim') || isempty(run.sim) || ~isfield(run.sim, 'solver')
+    return;
+end
+
+solverCfg = run.sim.solver;
+if isfield(solverCfg, 'preset') && ~isempty(solverCfg.preset)
+    preset = string(solverCfg.preset);
+end
+if isfield(solverCfg, 'method') && ~isempty(solverCfg.method)
+    method = string(solverCfg.method);
+end
+if isfield(solverCfg, 'timeStep') && ~isempty(solverCfg.timeStep)
+    timeStep = solverCfg.timeStep;
+end
+if isfield(solverCfg, 'relTol') && ~isempty(solverCfg.relTol)
+    relTol = solverCfg.relTol;
+end
+if isfield(solverCfg, 'absTol') && ~isempty(solverCfg.absTol)
+    absTol = solverCfg.absTol;
 end
 end
 

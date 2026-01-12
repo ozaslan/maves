@@ -9,6 +9,7 @@ arguments
     opts.showTable (1, 1) logical = true
 end
 
+global params;
 global state;
 
 metrics = struct('rmse', NaN, ...
@@ -54,14 +55,18 @@ metrics.totalFlightTime = getTotalDuration(tActual);
 
 [scenarioName, trajType, trajProfile, controllerType, controllerProfile, controllerParams] = ...
     getScenarioSummary(state);
+[solverPreset, solverMethod, solverTimeStep, solverRelTol, solverAbsTol] = ...
+    getSolverSummary(state, params);
 
 summaryTable = table( ...
     scenarioName, trajType, trajProfile, controllerType, controllerProfile, controllerParams, ...
+    solverPreset, solverMethod, solverTimeStep, solverRelTol, solverAbsTol, ...
     metrics.totalTrajectoryTime, metrics.totalFlightTime, metrics.totalWallTime, ...
     metrics.minError, metrics.maxError, metrics.rmse, ...
     'VariableNames', { ...
     'Scenario', 'TrajectoryType', 'TrajectoryProfile', ...
     'ControllerType', 'ControllerProfile', 'ControllerParams', ...
+    'SolverPreset', 'SolverMethod', 'SolverTimeStep', 'SolverRelTol', 'SolverAbsTol', ...
     'TotalTrajectoryTime', 'TotalFlightTime', 'TotalWallTime', ...
     'MinError', 'MaxError', 'RMSE'});
 if opts.showTable
@@ -171,6 +176,39 @@ if isfield(state, 'sim')
         catch
         end
     end
+end
+end
+
+function [preset, method, timeStep, relTol, absTol] = getSolverSummary(state, params)
+preset = "unknown";
+method = "unknown";
+timeStep = NaN;
+relTol = NaN;
+absTol = NaN;
+
+solverCfg = struct();
+if isfield(state, 'sim') && isfield(state.sim, 'solver')
+    solverCfg = state.sim.solver;
+elseif isfield(params, 'sim') && isfield(params.sim, 'solver')
+    solverCfg = params.sim.solver;
+end
+
+if isfield(solverCfg, 'preset') && ~isempty(solverCfg.preset)
+    preset = string(solverCfg.preset);
+end
+if isfield(solverCfg, 'method') && ~isempty(solverCfg.method)
+    method = string(solverCfg.method);
+end
+if isfield(solverCfg, 'timeStep') && ~isempty(solverCfg.timeStep)
+    timeStep = solverCfg.timeStep;
+elseif isfield(params, 'sim') && isfield(params.sim, 'freq')
+    timeStep = 1 / params.sim.freq;
+end
+if isfield(solverCfg, 'relTol') && ~isempty(solverCfg.relTol)
+    relTol = solverCfg.relTol;
+end
+if isfield(solverCfg, 'absTol') && ~isempty(solverCfg.absTol)
+    absTol = solverCfg.absTol;
 end
 end
 
