@@ -33,3 +33,4 @@ fprintf('Simulation Stopped!\n');
 updateVisuals(true);
 drawnow();
 
+summarizeRun();
