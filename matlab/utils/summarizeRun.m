@@ -159,7 +159,8 @@ function wallTime = resolveWallTime(state)
 wallTime = NaN;
 
 if isfield(state, 'sim')
-    if isfield(state.sim, 'wallTime') && ~isempty(state.sim.wallTime)
+    if isfield(state.sim, 'wallTime') && ~isempty(state.sim.wallTime) ...
+            && all(isfinite(state.sim.wallTime))
         wallTime = state.sim.wallTime;
         return;
     end
