@@ -182,3 +182,14 @@ switch lower(controllerType)
 end
 end
 
+function value = convertCharsAndStrings(value)
+%CONVERTCHARSANDSTRINGS Compatibility shim for older MATLAB versions.
+
+if isstring(value)
+    if isscalar(value)
+        value = char(value);
+    else
+        value = cellstr(value);
+    end
+end
+end
