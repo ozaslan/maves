@@ -12,6 +12,7 @@ activeScenario = 'line-default';
 scenario = chooseScenario(activeScenario);
 
 initialize();
+setSolverPreset('balanced', 'ode45');
 setScenario(scenario);
 respawn();
 

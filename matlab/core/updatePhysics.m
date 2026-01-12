@@ -31,10 +31,9 @@ if t0 == 0 % The quadcopter is spawn at trajectory point at t = 0
     appendTrajPoint(t0, sT(:)); % Record the commanded trajectory hist. of quad.
 end
 
-% Configure the solve and run it for [t0, tf] time span.
-opt = odeset('RelTol', 1e-5, 'Stats','off');
+% Configure the solver and run it for [t0, tf] time span.
 eom = @(t, s) attitudeControl(t, s, u);
-[ts, ss] = ode45(eom, [t0, tf], s, opt);
+[ts, ss] = state.sim.solverHandle(eom, [t0, tf], s, state.sim.solverOptions);
 
 appendTrajPoint(tf, sT);           % Record quad. state hist.
 updateState(ts(end), ss(end, :)'); % Update quad. state with ode45 result.
@@ -59,6 +58,3 @@ end
 stamp = ts(end);
 
 assert(stamp == getStamp());
-
-
-
