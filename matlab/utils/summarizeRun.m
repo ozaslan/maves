@@ -1,8 +1,13 @@
-function metrics = summarizeRun()
+function metrics = summarizeRun(opts)
 %SUMMARIZERUN  Print trajectory metrics and plot performance summaries.
 %   METRICS = SUMMARIZERUN() computes the trajectory RMSE, plots tracking
 %   error versus time with a max-error line, plots control effort, and
 %   plots the FFT of the control effort. A metrics struct is returned.
+
+arguments
+    opts.showPlots (1, 1) logical = true
+    opts.showTable (1, 1) logical = true
+end
 
 global state;
 
@@ -10,7 +15,13 @@ metrics = struct('rmse', NaN, ...
     'maxError', NaN, ...
     'minError', NaN, ...
     'totalTrajectoryTime', NaN, ...
-    'totalFlightTime', NaN);
+    'totalFlightTime', NaN, ...
+    'totalWallTime', NaN);
+
+metrics.totalWallTime = resolveWallTime(state);
+if isfield(state, 'sim')
+    state.sim.wallTime = metrics.totalWallTime;
+end
 
 if ~isfield(state, 'qcopter') || isempty(state.qcopter)
     return;
@@ -46,14 +57,21 @@ metrics.totalFlightTime = getTotalDuration(tActual);
 
 summaryTable = table( ...
     scenarioName, trajType, trajProfile, controllerType, controllerProfile, controllerParams, ...
-    metrics.totalTrajectoryTime, metrics.totalFlightTime, ...
+    metrics.totalTrajectoryTime, metrics.totalFlightTime, metrics.totalWallTime, ...
     metrics.minError, metrics.maxError, metrics.rmse, ...
     'VariableNames', { ...
     'Scenario', 'TrajectoryType', 'TrajectoryProfile', ...
     'ControllerType', 'ControllerProfile', 'ControllerParams', ...
-    'TotalTrajectoryTime', 'TotalFlightTime', 'MinError', 'MaxError', 'RMSE'});
-disp('Run Summary Metrics:');
-disp(summaryTable);
+    'TotalTrajectoryTime', 'TotalFlightTime', 'TotalWallTime', ...
+    'MinError', 'MaxError', 'RMSE'});
+if opts.showTable
+    disp('Run Summary Metrics:');
+    disp(summaryTable);
+end
+
+if ~opts.showPlots
+    return;
+end
 
 figure('Name', 'Run Summary', 'NumberTitle', 'off');
 tiledlayout(3, 1, 'Padding', 'compact', 'TileSpacing', 'compact');
@@ -135,6 +153,24 @@ if isempty(tSeries)
     return;
 end
 duration = tSeries(end) - tSeries(1);
+end
+
+function wallTime = resolveWallTime(state)
+wallTime = NaN;
+
+if isfield(state, 'sim')
+    if isfield(state.sim, 'wallTime') && ~isempty(state.sim.wallTime)
+        wallTime = state.sim.wallTime;
+        return;
+    end
+    if isfield(state.sim, 'wallStart') && ~isempty(state.sim.wallStart)
+        try
+            wallTime = toc(state.sim.wallStart);
+            return;
+        catch
+        end
+    end
+end
 end
 
 function [scenarioName, trajType, trajProfile, controllerType, controllerProfile, controllerParams] = ...
