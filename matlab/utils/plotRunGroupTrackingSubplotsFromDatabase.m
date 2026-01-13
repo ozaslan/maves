@@ -363,7 +363,7 @@ if ~plotted
 end
 
 if showLegend && plotted
-    legend(ax, 'Location', 'best');
+    legend(ax, 'Location', 'northeast');
 end
 if plotted
     yLimits = ylim(ax);
