@@ -2,6 +2,8 @@
 %   Edit the parameter block below to switch which run is loaded and
 %   plotted. Uncomment the runIndex option to pick a specific stored run.
 
+close all
+
 %% Parameter block (edit these)
 % Default database path if left empty.
 databaseFile = '';
@@ -14,7 +16,7 @@ runIndex = 1;
 scenarioName = 'line-default';
 controllerType = 'lqr';
 controllerProfile = 'default';
-solverPreset = 'balanced';
+solverPreset = 'accurate';
 
 % Plot toggles
 showArena = true;

@@ -159,6 +159,7 @@ for idx = 1:runCount
         matches(idx) = isequal(currentValue, value);
     end
 end
+end 
 
 function matches = matchSolverPreset(runs, preset)
 runCount = numel(runs);
