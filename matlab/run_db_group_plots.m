@@ -17,8 +17,8 @@ scenarioNames = {}; % {'hover-default','hover-offset','line-default','line-short
 trajectoryTypes = {'line'}; % {'trajPresetHover','trajPresetLine','trajPresetDiamond','trajPresetCircle'}
 trajectoryProfiles = {}; % {'default','offset','corner','short','long','compact','stretched','tight','wide'}
 controllerTypes = {'lqr'}; % {'pid','lqr'}
-controllerProfiles = {}; % {'default','aggressive'}
-solverPresets = {'balanced', 'accurate'}; % {'fast','balanced','accurate'}
+controllerProfiles = {'default'}; % {'default','aggressive'}
+solverPresets = {'accurate'}; % {'fast','balanced','accurate'}
 
 showLegend = true;
 
