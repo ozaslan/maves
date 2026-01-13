@@ -13,12 +13,12 @@ databaseFile = '';
 runIndices = [];
 
 % Filters (leave empty to ignore).
-scenarioNames = {};
-trajectoryTypes = {'line'};
-trajectoryProfiles = {};
-controllerTypes = {'lqr'};
-controllerProfiles = {};
-solverPresets = {'balanced', 'accurate'};
+scenarioNames = {}; % {'hover-default','hover-offset','line-default','line-short','line-long','diamond-compact','diamond-stretched','circle-wide','circle-tight'}
+trajectoryTypes = {'line'}; % {'trajPresetHover','trajPresetLine','trajPresetDiamond','trajPresetCircle'}
+trajectoryProfiles = {}; % {'default','offset','corner','short','long','compact','stretched','tight','wide'}
+controllerTypes = {'lqr'}; % {'pid','lqr'}
+controllerProfiles = {}; % {'default','aggressive'}
+solverPresets = {'balanced', 'accurate'}; % {'fast','balanced','accurate'}
 
 showLegend = true;
 
