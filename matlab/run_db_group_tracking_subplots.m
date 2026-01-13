@@ -101,7 +101,8 @@ outputDir = fullfile(fileparts(mfilename('fullpath')), 'figures');
 if ~exist(outputDir, 'dir')
     mkdir(outputDir);
 end
-baseName = fullfile(outputDir, 'db_group_tracking_subplots');
+nameSuffix = buildGroupNameSuffix(filterGroups);
+baseName = fullfile(outputDir, "db_group_tracking_subplots_" + nameSuffix);
 saveas(fig, baseName + ".fig");
 exportgraphics(fig, baseName + ".png", 'Resolution', 300);
 exportgraphics(fig, baseName + ".pdf");
@@ -136,4 +137,26 @@ for idx = 1:size(abbrevs, 1)
     lines(idx) = abbrevs{idx, 1} + ": " + abbrevs{idx, 2};
 end
 explanation = strjoin(lines, " | ");
+end
+
+function suffix = buildGroupNameSuffix(filterGroups)
+titles = strings(1, numel(filterGroups));
+for idx = 1:numel(filterGroups)
+    if isfield(filterGroups{idx}, 'title') && ~isempty(filterGroups{idx}.title)
+        titles(idx) = string(filterGroups{idx}.title);
+    else
+        titles(idx) = "group" + idx;
+    end
+end
+suffix = sanitizeFilename(strjoin(titles, "__"));
+if strlength(suffix) == 0
+    suffix = "all_groups";
+end
+end
+
+function cleaned = sanitizeFilename(rawName)
+cleaned = lower(rawName);
+cleaned = regexprep(cleaned, "[^a-z0-9]+", "_");
+cleaned = regexprep(cleaned, "_+", "_");
+cleaned = regexprep(cleaned, "^_|_$", "");
 end
