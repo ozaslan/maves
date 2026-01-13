@@ -23,19 +23,22 @@ showSummaryTable = true;
 runPsdReport = false;
 
 %% Build options and call the helper
-opts = struct();
-opts.showArena = showArena;
-opts.showTelemetry = showTelemetry;
-opts.showPlots = showSummaryPlots;
-opts.showTable = showSummaryTable;
-opts.runPsdReport = runPsdReport;
+args = { ...
+    'showArena', showArena, ...
+    'showTelemetry', showTelemetry, ...
+    'showPlots', showSummaryPlots, ...
+    'showTable', showSummaryTable, ...
+    'runPsdReport', runPsdReport ...
+    };
 
 if useRunIndex
-    opts.runIndex = runIndex;
+    args = [args, {'runIndex', runIndex}];
 else
-    opts.scenarioName = scenarioName;
-    opts.controllerType = controllerType;
-    opts.controllerProfile = controllerProfile;
+    args = [args, { ...
+        'scenarioName', scenarioName, ...
+        'controllerType', controllerType, ...
+        'controllerProfile', controllerProfile ...
+        }];
 end
 
-plotRunFromDatabase(databaseFile, opts);
+plotRunFromDatabase(databaseFile, args{:});
