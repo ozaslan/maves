@@ -88,6 +88,30 @@ if all(isfinite(globalXLim)) && all(isfinite(globalYLim)) ...
     end
 end
 
+fig = gcf;
+fig.Units = 'inches';
+fig.Position = [1, 1, 12, 8];
+fig.PaperPositionMode = 'auto';
+
+legendExplanation = buildLegendExplanation();
+annotation(fig, 'textbox', [0.01, 0.005, 0.98, 0.08], ...
+    'String', legendExplanation, ...
+    'HorizontalAlignment', 'center', ...
+    'VerticalAlignment', 'middle', ...
+    'EdgeColor', 'none', ...
+    'FontSize', 9);
+disp("Legend abbreviations:");
+disp(legendExplanation);
+
+outputDir = fullfile(fileparts(mfilename('fullpath')), 'figures');
+if ~exist(outputDir, 'dir')
+    mkdir(outputDir);
+end
+baseName = fullfile(outputDir, 'db_group_tracking_subplots');
+saveas(fig, baseName + ".fig");
+exportgraphics(fig, baseName + ".png", 'Resolution', 300);
+exportgraphics(fig, baseName + ".pdf");
+
 function merged = mergeFilterGroup(baseFilters, groupFilters)
 merged = baseFilters;
 if isempty(groupFilters)
@@ -98,4 +122,24 @@ for idx = 1:numel(fields)
     fieldName = fields{idx};
     merged.(fieldName) = groupFilters.(fieldName);
 end
+end
+
+function explanation = buildLegendExplanation()
+abbrevs = {
+    "LN", "Line trajectory"
+    "CIR", "Circle trajectory"
+    "DIA", "Diamond trajectory"
+    "PID", "Proportional-Integral-Derivative controller"
+    "LQR", "Linear Quadratic Regulator controller"
+    "MPC", "Model Predictive Control controller"
+    "FST", "Fast solver preset"
+    "BAL", "Balanced solver preset"
+    "ACC", "Accurate solver preset"
+    };
+
+lines = strings(size(abbrevs, 1), 1);
+for idx = 1:size(abbrevs, 1)
+    lines(idx) = abbrevs{idx, 1} + ": " + abbrevs{idx, 2};
+end
+explanation = strjoin(lines, " | ");
 end
