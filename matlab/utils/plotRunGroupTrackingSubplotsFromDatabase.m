@@ -110,8 +110,8 @@ end
 end
 
 function [rows, cols] = layoutForCount(count)
-cols = max(1, ceil(sqrt(count)));
-rows = ceil(count / cols);
+cols = 1;
+rows = max(1, count);
 end
 
 function titleText = resolveGroupTitle(groupOpts, groupTitles, idx)
