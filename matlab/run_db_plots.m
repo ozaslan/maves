@@ -13,8 +13,8 @@ useRunIndex = false;
 runIndex = 1;
 
 % Match the same parameters you would pass to runsim/chooseScenario.
-scenarioName = 'line-default';
-controllerType = 'lqr';
+scenarioName = 'diamond-compact';
+controllerType = 'pid';
 controllerProfile = 'default';
 solverPreset = 'accurate';
 
@@ -60,5 +60,5 @@ figHandles = findall(0, 'Type', 'figure');
 for figIndex = 1:numel(figHandles)
     figName = sprintf('%s_fig%02d', baseName, figIndex);
     savefig(figHandles(figIndex), [figName '.fig']);
-    saveas(figHandles(figIndex), [figName '.bmp']);
+    saveas(figHandles(figIndex), [figName '.png']);
 end

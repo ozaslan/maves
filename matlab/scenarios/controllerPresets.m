@@ -42,9 +42,9 @@ function pidValues = pidParams(profile)
 
 switch profile
     case 'default'
-        pidValues = [3.0; 1.0; 2.0; 5.0];
-    case 'aggressive'
         pidValues = [4.5; 1.5; 3.5; 5.0];
+    case 'aggressive'
+        pidValues = [6.0; 2.5; 5.0; 5.0];
     otherwise
         error('Unknown PID profile "%s". Use "default" or "aggressive".', profile);
 end
