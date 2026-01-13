@@ -4,6 +4,12 @@ function initPlots()
 
 global params;
 
+if isfield(params, 'sim') && isfield(params.sim, 'visualsEnabled') && ...
+        ~params.sim.visualsEnabled
+    params.plots.axesHandles = [];
+    return;
+end
+
 if params.qcopter.visual.plotFreq == 0
     if ~isempty(params.plots.panelHandle) && isvalid(params.plots.panelHandle)
         delete(findall(params.plots.panelHandle, 'type', 'axes'));
@@ -66,6 +72,5 @@ for i = 1 : 8
 end
 
 drawnow();
-
 
 

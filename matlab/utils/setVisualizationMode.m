@@ -6,6 +6,7 @@ function setVisualizationMode(mode)
 %   setVisualizationMode('deferred') - Skip intermediate drawing and only
 %                                      render the final state when the
 %                                      simulation completes.
+%   setVisualizationMode('off')      - Disable visualization entirely.
 
 global params;
 
@@ -20,12 +21,19 @@ if isstring(mode)
     mode = char(mode);
 end
 
-validModes = {'live', 'deferred'};
+validModes = {'live', 'deferred', 'off'};
 mode = validatestring(mode, validModes, mfilename, 'mode');
 
 if ~isfield(params, 'sim') || isempty(params.sim)
     params.sim = struct();
 end
 
-params.sim.runMode = mode;
+if ~isfield(params.sim, 'visualsEnabled') || isempty(params.sim.visualsEnabled)
+    params.sim.visualsEnabled = true;
+end
 
+if strcmpi(mode, 'off')
+    params.sim.visualsEnabled = false;
+end
+
+params.sim.runMode = mode;
