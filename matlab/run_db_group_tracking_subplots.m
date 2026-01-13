@@ -11,7 +11,7 @@ databaseFile = '';
 % Base filters applied to all groups (leave empty to ignore).
 runIndices = [];
 scenarioNames = {};
-trajectoryTypes = {'line'};
+trajectoryTypes = {'circle'};
 trajectoryProfiles = {};
 controllerTypes = {};
 controllerProfiles = {};
