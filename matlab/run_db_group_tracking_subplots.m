@@ -15,7 +15,7 @@ trajectoryTypes = {'line'};
 trajectoryProfiles = {};
 controllerTypes = {};
 controllerProfiles = {};
-solverPresets = {};
+solverPresets = {'balanced'};
 
 % Define multiple groups of filters to plot on separate subplots.
 % Groups inherit any filter fields not explicitly provided from the base
