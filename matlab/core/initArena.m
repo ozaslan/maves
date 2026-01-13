@@ -5,6 +5,20 @@ function initArena()
 %   quadcopter and obstacles are drawn. 
 global params;
 
+if isfield(params, 'sim') && isfield(params.sim, 'visualsEnabled') && ...
+        ~params.sim.visualsEnabled
+    params.arena.figHandle = [];
+    params.arena.axesHandle = [];
+    params.arena.dynamicLimits = [];
+    params.plots.figHandle = [];
+    params.plots.panelHandle = [];
+    params.plots.layoutHandle = [];
+    params.plots.axesHandles = [];
+    params.plots.statusPanelHandle = [];
+    params.plots.statusTextHandles = struct();
+    return;
+end
+
 if params.closeAllFigures
     close all;
 end
@@ -185,5 +199,4 @@ function updateArenaFigureSizeDisplay()
         'String', sprintf('Size: %d x %d px', widthPx, heightPx));
 
 end
-
 

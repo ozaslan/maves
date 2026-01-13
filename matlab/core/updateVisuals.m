@@ -17,6 +17,11 @@ end
 
 global params;
 
+if isfield(params, 'sim') && isfield(params.sim, 'visualsEnabled') && ...
+        ~params.sim.visualsEnabled
+    return;
+end
+
 persistent spinnerIdx lastMsgLen spinnerActive lastUpdateTime;
 if isempty(spinnerIdx)
     spinnerIdx = 0;

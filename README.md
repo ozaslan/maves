@@ -16,6 +16,7 @@ The `matlab/runsim.m` script wires together the core simulator, helper utilities
 4. Run the script. The main loop advances the dynamics, updates the visualization, and sleeps to maintain the configured simulation rate until the vehicle either completes its task or leaves the valid bounds.
    Use `setVisualizationMode('deferred')` if you prefer to run the physics as quickly as possible and only draw the final plots after the simulation stops; the default `'live'` mode keeps the original frame-by-frame updates.
    Enable capture with `setCaptureMode('save')` to record the arena figure while you run the simulation. In live mode this writes `maves_video_<timestamp>.mp4`; in deferred mode the final frame is exported as `maves_image_<timestamp>.png`. Use `'none'` to leave nothing behind.
+   For batch runs where you do not want any figures to appear, call `initialize('visualsEnabled', false)` before starting the simulation loop.
 
 ## How the simulation works
 - **Initialization pipeline.** `initialize()` orchestrates parameter setup, arena configuration, state resets, and plot creation before every run.  

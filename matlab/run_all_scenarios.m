@@ -18,6 +18,7 @@ scenarioNames = { ...
 
 controllerTypes = {'pid', 'lqr'};
 controllerProfiles = {'default', 'aggressive'};
+visualsEnabled = false;
 
 outputDir = fullfile(pwd, 'database');
 if ~exist(outputDir, 'dir')
@@ -46,7 +47,7 @@ for idx = 1:numel(scenarioNames)
                 'visualizationMode', 'deferred', ...
                 'captureMode', 'none');
 
-            initialize();
+            initialize('visualsEnabled', visualsEnabled);
             setSolverPreset('balanced', 'ode45');
             global params;
             global state;
