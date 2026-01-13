@@ -23,20 +23,16 @@ solverPresets = {'balanced'};
 filterGroups = {
     struct( ...
         'controllerProfiles', {'default'}, ...
-        'controllerTypes', {'pid'}, ...
-        'title', 'Line PID - Default')
+        'controllerTypes', {'pid'})
     struct( ...
         'controllerProfiles', {'aggressive'}, ...
-        'controllerTypes', {'pid'}, ...
-        'title', 'Line PID - Aggressive')
+        'controllerTypes', {'pid'})
     struct( ...
         'controllerProfiles', {'default'}, ...
-        'controllerTypes', {'lqr'}, ...
-        'title', 'Line LQR - Default')
+        'controllerTypes', {'lqr'})
     struct( ...
         'controllerProfiles', {'aggressive'}, ...
-        'controllerTypes', {'lqr'}, ...
-        'title', 'Line LQR - Aggressive')
+        'controllerTypes', {'lqr'})
     };
 
 showLegend = true;
@@ -53,6 +49,7 @@ baseFilters.solverPresets = solverPresets;
 
 for idx = 1:numel(filterGroups)
     filterGroups{idx} = mergeFilterGroup(baseFilters, filterGroups{idx});
+    filterGroups{idx}.title = buildGroupTitle(filterGroups{idx});
 end
 
 args = { ...
@@ -159,4 +156,60 @@ cleaned = lower(rawName);
 cleaned = regexprep(cleaned, "[^a-z0-9]+", "_");
 cleaned = regexprep(cleaned, "_+", "_");
 cleaned = regexprep(cleaned, "^_|_$", "");
+end
+
+function titleText = buildGroupTitle(groupFilters)
+trajectoryText = formatTitleList(groupFilters.trajectoryTypes, @toTitleCase, " / ");
+controllerText = formatTitleList(groupFilters.controllerTypes, @upper, " / ");
+profileText = formatTitleList(groupFilters.controllerProfiles, @toTitleCase, " / ");
+
+titleText = "";
+if trajectoryText ~= "" && controllerText ~= ""
+    titleText = trajectoryText + " " + controllerText;
+elseif trajectoryText ~= ""
+    titleText = trajectoryText;
+elseif controllerText ~= ""
+    titleText = controllerText;
+end
+
+if profileText ~= ""
+    if titleText ~= ""
+        titleText = titleText + " - " + profileText;
+    else
+        titleText = profileText;
+    end
+end
+
+if titleText == ""
+    titleText = "Tracking Error Group";
+end
+end
+
+function formatted = formatTitleList(values, formatter, separator)
+if isempty(values)
+    formatted = "";
+    return;
+end
+values = string(values);
+values(values == "") = [];
+if isempty(values)
+    formatted = "";
+    return;
+end
+formattedValues = strings(size(values));
+for idx = 1:numel(values)
+    formattedValues(idx) = formatter(values(idx));
+end
+formatted = strjoin(formattedValues, separator);
+end
+
+function titleCase = toTitleCase(value)
+value = char(value);
+if isempty(value)
+    titleCase = "";
+    return;
+end
+value = lower(value);
+value(1) = upper(value(1));
+titleCase = string(value);
 end
