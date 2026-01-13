@@ -61,4 +61,5 @@ for figIndex = 1:numel(figHandles)
     figName = sprintf('%s_fig%02d', baseName, figIndex);
     savefig(figHandles(figIndex), [figName '.fig']);
     saveas(figHandles(figIndex), [figName '.png']);
+    saveas(figHandles(figIndex), [figName '.pdf']);
 end
