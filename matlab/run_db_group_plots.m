@@ -1,7 +1,7 @@
 %RUN_DB_GROUP_PLOTS  Example driver for plotting grouped database runs.
 %   Edit the parameter block below to select a subset of runs, then run
-%   this script to plot tracking errors, control effort, and RMSE for all
-%   matching runs on a shared figure.
+%   this script to plot tracking errors and control effort for all matching
+%   runs on a shared figure.
 
 close all
 

@@ -2,8 +2,8 @@ function [runData, metrics] = plotRunGroupFromDatabase(databaseFile, opts)
 %PLOTRUNGROUPFROMDATABASE Plot multiple runs from the scenario database.
 %   [RUNDATA, METRICS] = PLOTRUNGROUPFROMDATABASE(DATABASEFILE) loads the
 %   scenario database saved by run_all_scenarios.m, filters runs based on
-%   the selection options, and plots tracking error, control effort, and
-%   RMSE on a shared figure with multiple subplots.
+%   the selection options, and plots tracking error and control effort on a
+%   shared figure with multiple subplots.
 %
 %   Optional name/value pairs:
 %     runIndices         - Explicit run indices to plot (overrides filters).
@@ -51,20 +51,17 @@ if isempty(runData)
     error('No database runs matched the requested parameters.');
 end
 
-[errorSeries, controlSeries, rmseValues, labels] = ...
-    collectRunSeries(runData);
+[errorSeries, controlSeries, labels] = collectRunSeries(runData);
 
 fig = figure('Name', 'Database Run Group Summary', 'NumberTitle', 'off');
-tiledlayout(fig, 3, 1, 'Padding', 'compact', 'TileSpacing', 'compact');
+tiledlayout(fig, 2, 1, 'Padding', 'compact', 'TileSpacing', 'compact');
 
 plotTrackingErrors(errorSeries, labels, opts.showLegend);
 plotControlEfforts(controlSeries, labels);
-plotRmse(rmseValues, labels);
 
 metrics = struct('labels', labels, ...
     'trackingError', errorSeries, ...
-    'controlEffort', controlSeries, ...
-    'rmse', rmseValues);
+    'controlEffort', controlSeries);
 
 end
 
@@ -197,11 +194,10 @@ end
 matches = any(strcmpi(string(value), validValues));
 end
 
-function [errorSeries, controlSeries, rmseValues, labels] = collectRunSeries(runData)
+function [errorSeries, controlSeries, labels] = collectRunSeries(runData)
 runCount = numel(runData);
 errorSeries = repmat(struct('t', [], 'error', []), 1, runCount);
 controlSeries = repmat(struct('t', [], 'effort', []), 1, runCount);
-rmseValues = NaN(1, runCount);
 labels = strings(1, runCount);
 
 for idx = 1:runCount
@@ -221,11 +217,10 @@ for idx = 1:runCount
             actualPos = traj(2:3, :);
             tRef = trajHist(1, :);
             refPos = trajHist(2:3, :);
-            [tAligned, errorMag, rmse] = computeTrajectoryError( ...
+            [tAligned, errorMag] = computeTrajectoryError( ...
                 tActual, actualPos, tRef, refPos);
             errorSeries(idx).t = tAligned;
             errorSeries(idx).error = errorMag;
-            rmseValues(idx) = rmse;
         end
 
         if isfield(log, 'cmdHist') && ~isempty(log.cmdHist) ...
@@ -279,6 +274,7 @@ grid(ax, 'on');
 title(ax, 'Control Effort');
 xlabel(ax, 'Time [s]');
 ylabel(ax, 'Control Effort [N]');
+set(ax, 'YScale', 'log');
 
 colors = lines(numel(controlSeries));
 plotted = false;
@@ -297,38 +293,6 @@ if ~plotted
     text(ax, 0.5, 0.5, 'No control effort data available.', ...
         'HorizontalAlignment', 'center', 'Units', 'normalized');
 end
-end
-
-function plotRmse(rmseValues, labels)
-ax = nexttile(3);
-hold(ax, 'on');
-grid(ax, 'on');
-title(ax, 'RMSE');
-xlabel(ax, 'Run Index');
-ylabel(ax, 'RMSE [m]');
-
-colors = lines(numel(rmseValues));
-validMask = isfinite(rmseValues);
-if ~any(validMask)
-    text(ax, 0.5, 0.5, 'No RMSE data available.', ...
-        'HorizontalAlignment', 'center', 'Units', 'normalized');
-    return;
-end
-
-for idx = 1:numel(rmseValues)
-    if ~isfinite(rmseValues(idx))
-        continue;
-    end
-    plot(ax, idx, rmseValues(idx), 'o', ...
-        'MarkerSize', 7, ...
-        'MarkerFaceColor', colors(idx, :), ...
-        'MarkerEdgeColor', colors(idx, :), ...
-        'DisplayName', labels(idx));
-end
-
-ax.XLim = [0.5, numel(rmseValues) + 0.5];
-ax.XTick = 1:numel(rmseValues);
-ax.XTickLabel = cellstr(compose('%d', 1:numel(rmseValues)));
 end
 
 function label = formatRunLabel(scenarioName, trajType, trajProfile, ...
