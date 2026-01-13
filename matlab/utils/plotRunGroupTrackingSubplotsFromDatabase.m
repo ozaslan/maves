@@ -69,7 +69,7 @@ for idx = 1:groupCount
     [errorSeries, labels] = collectRunErrorSeries(runData);
     groupTitle = resolveGroupTitle(groupOpts, opts.groupTitles, idx);
 
-    plotTrackingErrorsSubplot(errorSeries, labels, opts.showLegend, groupTitle);
+    plotTrackingErrorsSubplot(errorSeries, labels, opts.showLegend, groupTitle, idx, groupCount);
 
     groupData{idx} = runData;
     metrics(idx).labels = labels;
@@ -324,16 +324,19 @@ for idx = 1:runCount
 end
 end
 
-function plotTrackingErrorsSubplot(errorSeries, labels, showLegend, plotTitle)
+function plotTrackingErrorsSubplot(errorSeries, labels, showLegend, plotTitle, groupIndex, groupCount)
 ax = nexttile();
 hold(ax, 'on');
 grid(ax, 'on');
+ax.XMinorTick = 'on';
+ax.YMinorTick = 'on';
+ax.XMinorGrid = 'on';
+ax.YMinorGrid = 'on';
 if plotTitle == ""
     title(ax, 'Tracking Error vs Time');
 else
     title(ax, plotTitle);
 end
-xlabel(ax, 'Time [s]');
 ylabel(ax, 'Position Error [m]');
 
 colors = lines(max(1, numel(errorSeries)));
@@ -368,6 +371,19 @@ end
 if plotted
     yLimits = ylim(ax);
     ylim(ax, [min(yLimits(1), -0.05), yLimits(2)]);
+end
+
+if groupCount <= 1
+    xlabel(ax, 'Time [s]');
+elseif groupIndex == 1
+    labelHandle = xlabel(ax, 'Time [s]');
+    labelHandle.Units = 'normalized';
+    labelHandle.Position(2) = 1.08;
+    labelHandle.VerticalAlignment = 'bottom';
+elseif groupIndex == groupCount
+    xlabel(ax, 'Time [s]');
+else
+    xlabel(ax, '');
 end
 end
 
