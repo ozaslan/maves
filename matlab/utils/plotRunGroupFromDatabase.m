@@ -196,7 +196,7 @@ end
 
 function [errorSeries, controlSeries, labels] = collectRunSeries(runData)
 runCount = numel(runData);
-errorSeries = repmat(struct('t', [], 'error', []), 1, runCount);
+errorSeries = repmat(struct('t', [], 'error', [], 'intendedTime', []), 1, runCount);
 controlSeries = repmat(struct('t', [], 'effort', []), 1, runCount);
 labels = strings(1, runCount);
 
@@ -221,6 +221,9 @@ for idx = 1:runCount
                 tActual, actualPos, tRef, refPos);
             errorSeries(idx).t = tAligned;
             errorSeries(idx).error = errorMag;
+            if ~isempty(tRef)
+                errorSeries(idx).intendedTime = tRef(end);
+            end
         end
 
         if isfield(log, 'cmdHist') && ~isempty(log.cmdHist) ...
@@ -232,6 +235,10 @@ for idx = 1:runCount
             controlSeries(idx).t = tCmd;
             controlSeries(idx).effort = controlEffort;
         end
+    end
+
+    if isempty(errorSeries(idx).intendedTime)
+        errorSeries(idx).intendedTime = extractIntendedTime(run);
     end
 end
 end
@@ -245,16 +252,29 @@ xlabel(ax, 'Time [s]');
 ylabel(ax, 'Position Error [m]');
 
 colors = lines(numel(errorSeries));
+lineStyles = {'-', '--', '-.', ':'};
+markers = {'none', 'o', 's', 'd', '^', 'v', 'x', '+', '*', '.'};
 plotted = false;
 for idx = 1:numel(errorSeries)
     if isempty(errorSeries(idx).t) || isempty(errorSeries(idx).error)
         continue;
     end
     plotted = true;
+    lineStyle = lineStyles{mod(idx - 1, numel(lineStyles)) + 1};
+    marker = markers{mod(idx - 1, numel(markers)) + 1};
     plot(ax, errorSeries(idx).t, errorSeries(idx).error, ...
         'LineWidth', 1.5, ...
+        'LineStyle', lineStyle, ...
+        'Marker', marker, ...
+        'MarkerSize', 4, ...
         'Color', colors(idx, :), ...
         'DisplayName', labels(idx));
+    if ~isempty(errorSeries(idx).intendedTime)
+        xline(ax, errorSeries(idx).intendedTime, ...
+            'Color', colors(idx, :), ...
+            'LineStyle', lineStyle, ...
+            'HandleVisibility', 'off');
+    end
 end
 
 if ~plotted
@@ -265,6 +285,10 @@ end
 if showLegend && plotted
     legend(ax, 'Location', 'best');
 end
+if plotted
+    yLimits = ylim(ax);
+    ylim(ax, [min(yLimits(1), -0.05), yLimits(2)]);
+end
 end
 
 function plotControlEfforts(controlSeries, labels)
@@ -274,17 +298,23 @@ grid(ax, 'on');
 title(ax, 'Control Effort');
 xlabel(ax, 'Time [s]');
 ylabel(ax, 'Control Effort [N]');
-set(ax, 'YScale', 'log');
 
 colors = lines(numel(controlSeries));
+lineStyles = {'-', '--', '-.', ':'};
+markers = {'none', 'o', 's', 'd', '^', 'v', 'x', '+', '*', '.'};
 plotted = false;
 for idx = 1:numel(controlSeries)
     if isempty(controlSeries(idx).t) || isempty(controlSeries(idx).effort)
         continue;
     end
     plotted = true;
+    lineStyle = lineStyles{mod(idx - 1, numel(lineStyles)) + 1};
+    marker = markers{mod(idx - 1, numel(markers)) + 1};
     plot(ax, controlSeries(idx).t, controlSeries(idx).effort, ...
         'LineWidth', 1.5, ...
+        'LineStyle', lineStyle, ...
+        'Marker', marker, ...
+        'MarkerSize', 4, ...
         'Color', colors(idx, :), ...
         'DisplayName', labels(idx));
 end
@@ -292,6 +322,23 @@ end
 if ~plotted
     text(ax, 0.5, 0.5, 'No control effort data available.', ...
         'HorizontalAlignment', 'center', 'Units', 'normalized');
+end
+if plotted
+    yLimits = ylim(ax);
+    ylim(ax, [0, yLimits(2)]);
+end
+end
+
+function intendedTime = extractIntendedTime(run)
+intendedTime = [];
+if isfield(run, 'scenario') && ~isempty(run.scenario)
+    scenario = run.scenario;
+    if isfield(scenario, 'trajParams') && ~isempty(scenario.trajParams)
+        params = scenario.trajParams;
+        if isstruct(params) && isfield(params, 'tEnd') && ~isempty(params.tEnd)
+            intendedTime = params.tEnd;
+        end
+    end
 end
 end
 
