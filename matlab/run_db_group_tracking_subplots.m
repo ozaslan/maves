@@ -59,7 +59,34 @@ args = { ...
     'showLegend', showLegend ...
     };
 
-plotRunGroupTrackingSubplotsFromDatabase(databaseFile, filterGroups, args{:});
+[~, metrics] = plotRunGroupTrackingSubplotsFromDatabase(databaseFile, filterGroups, args{:});
+
+% Synchronize axis limits across all subplots.
+globalXLim = [inf, -inf];
+globalYLim = [inf, -inf];
+for idx = 1:numel(metrics)
+    series = metrics(idx).trackingError;
+    for jdx = 1:numel(series)
+        if ~isempty(series(jdx).t)
+            globalXLim(1) = min(globalXLim(1), min(series(jdx).t));
+            globalXLim(2) = max(globalXLim(2), max(series(jdx).t));
+        end
+        if ~isempty(series(jdx).error)
+            globalYLim(1) = min(globalYLim(1), min(series(jdx).error));
+            globalYLim(2) = max(globalYLim(2), max(series(jdx).error));
+        end
+    end
+end
+
+if all(isfinite(globalXLim)) && all(isfinite(globalYLim)) ...
+        && globalXLim(1) < globalXLim(2) && globalYLim(1) < globalYLim(2)
+    globalYLim(1) = min(globalYLim(1), -0.05);
+    axesHandles = findall(gcf, 'Type', 'Axes');
+    for idx = 1:numel(axesHandles)
+        xlim(axesHandles(idx), globalXLim);
+        ylim(axesHandles(idx), globalYLim);
+    end
+end
 
 function merged = mergeFilterGroup(baseFilters, groupFilters)
 merged = baseFilters;
