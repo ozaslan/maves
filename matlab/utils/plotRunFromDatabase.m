@@ -11,6 +11,7 @@ function [runData, metrics] = plotRunFromDatabase(databaseFile, opts)
 %
 %   Optional name/value pairs:
 %     runIndex           - Explicit index into the database runs array.
+%     solverPreset       - Solver preset name (fast, balanced, accurate).
 %     showPlots          - Toggle the summarizeRun plots.
 %     showTable          - Toggle the summarizeRun table.
 %     showArena          - Toggle the arena/trajectory plot.
@@ -23,6 +24,7 @@ arguments
     opts.scenarioName (1, :) char = ''
     opts.controllerType (1, :) char = ''
     opts.controllerProfile (1, :) char = ''
+    opts.solverPreset (1, :) char = ''
     opts.runIndex (1, 1) double = NaN
     opts.showPlots (1, 1) logical = true
     opts.showTable (1, 1) logical = true
@@ -126,6 +128,9 @@ end
 if ~isempty(opts.controllerProfile)
     matches = matches & matchField(runs, 'controllerProfile', opts.controllerProfile, 'scenario');
 end
+if ~isempty(opts.solverPreset)
+    matches = matches & matchSolverPreset(runs, opts.solverPreset);
+end
 
 indices = find(matches);
 if isempty(indices)
@@ -152,6 +157,28 @@ for idx = 1:runCount
         matches(idx) = strcmpi(string(currentValue), string(value));
     else
         matches(idx) = isequal(currentValue, value);
+    end
+end
+
+function matches = matchSolverPreset(runs, preset)
+runCount = numel(runs);
+matches = false(1, runCount);
+
+for idx = 1:runCount
+    run = runs(idx);
+    if isfield(run, 'solverPreset') && ~isempty(run.solverPreset)
+        currentValue = run.solverPreset;
+    elseif isfield(run, 'sim') && isfield(run.sim, 'solver') ...
+            && isfield(run.sim.solver, 'preset')
+        currentValue = run.sim.solver.preset;
+    else
+        continue;
+    end
+
+    if isstring(currentValue) || ischar(currentValue)
+        matches(idx) = strcmpi(string(currentValue), string(preset));
+    else
+        matches(idx) = isequal(currentValue, preset);
     end
 end
 end
