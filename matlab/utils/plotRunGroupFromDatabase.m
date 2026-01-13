@@ -81,7 +81,7 @@ if ~isempty(opts.runIndices)
 end
 
 scenarioNames = normalizeStringList(opts.scenarioNames);
-trajTypes = normalizeStringList(opts.trajectoryTypes);
+trajTypes = normalizeTrajTypeList(opts.trajectoryTypes);
 trajProfiles = normalizeStringList(opts.trajectoryProfiles);
 controllerTypes = normalizeStringList(opts.controllerTypes);
 controllerProfiles = normalizeStringList(opts.controllerProfiles);
@@ -92,6 +92,7 @@ for idx = 1:runCount
     run = runs(idx);
     [scenarioName, trajType, trajProfile, controllerType, controllerProfile, solverPreset] = ...
         getRunDescriptors(run);
+    trajType = normalizeTrajType(trajType);
     matches(idx) = matches(idx) ...
         && matchList(scenarioName, scenarioNames) ...
         && matchList(trajType, trajTypes) ...
@@ -162,6 +163,26 @@ else
 end
 values = strip(values);
 values = values(values ~= "");
+end
+
+function values = normalizeTrajTypeList(values)
+values = normalizeStringList(values);
+if isempty(values)
+    return;
+end
+values = arrayfun(@normalizeTrajType, values);
+values = values(values ~= "");
+end
+
+function value = normalizeTrajType(value)
+if isempty(value)
+    value = "";
+    return;
+end
+value = lower(strtrim(string(value)));
+value = regexprep(value, '^trajpreset', '');
+value = regexprep(value, '^traj', '');
+value = strtrim(value);
 end
 
 function matches = matchList(value, validValues)
