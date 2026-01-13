@@ -1,10 +1,13 @@
-function summaryTable = printScenarioPerformanceTable(databaseFile, opts)
+function [summaryTable, latexTable] = printScenarioPerformanceTable(databaseFile, opts)
 %PRINTSCENARIOPERFORMANCETABLE Print a compact performance summary table.
 %   SUMMARYTABLE = PRINTSCENARIOPERFORMANCETABLE(DATABASEFILE) loads the
 %   scenario database saved by run_all_scenarios.m, filters runs based on
 %   the selection options, and returns a table with trajectory name,
 %   controller, parameter set, RMSE, average/max control effort, and
 %   trajectory completion time.
+%
+%   [SUMMARYTABLE, LATEXTABLE] = PRINTSCENARIOPERFORMANCETABLE(...) also
+%   returns a LaTeX table string (booktabs-style) suitable for papers.
 %
 %   Optional name/value pairs:
 %     runIndices         - Explicit run indices to include (overrides filters).
@@ -15,6 +18,12 @@ function summaryTable = printScenarioPerformanceTable(databaseFile, opts)
 %     controllerProfiles - Controller profile(s) to match.
 %     solverPresets      - Solver preset(s) to match.
 %     showTable          - Toggle console printing.
+%     showLatexTable     - Toggle console printing of the LaTeX table.
+%     latexCaption       - Caption text for the LaTeX table.
+%     latexLabel         - Label tag for the LaTeX table.
+%     latexFloatPosition - LaTeX float position (e.g., "htbp").
+%     latexColumnFormat  - Column format override (e.g., "lllrccc").
+%     latexPrecision     - Numeric precision for LaTeX table output.
 
 arguments
     databaseFile (1, :) char = ''
@@ -26,6 +35,12 @@ arguments
     opts.controllerProfiles = []
     opts.solverPresets = []
     opts.showTable (1, 1) logical = true
+    opts.showLatexTable (1, 1) logical = false
+    opts.latexCaption (1, :) char = 'Scenario Performance Summary'
+    opts.latexLabel (1, :) char = 'tab:scenario-performance'
+    opts.latexFloatPosition (1, :) char = 'htbp'
+    opts.latexColumnFormat (1, :) char = ''
+    opts.latexPrecision (1, 1) double = 3
 end
 
 if isempty(databaseFile)
@@ -45,9 +60,14 @@ end
 database = loaded.database;
 if ~isfield(database, 'runs') || isempty(database.runs)
     summaryTable = table();
+    latexTable = "";
     if opts.showTable
         disp('Scenario database is empty.');
         disp(summaryTable);
+    end
+    if opts.showLatexTable
+        disp('LaTeX table:');
+        disp(latexTable);
     end
     return;
 end
@@ -55,9 +75,14 @@ end
 runData = selectRuns(database.runs, opts);
 if isempty(runData)
     summaryTable = table();
+    latexTable = "";
     if opts.showTable
         disp('No database runs matched the requested parameters.');
         disp(summaryTable);
+    end
+    if opts.showLatexTable
+        disp('LaTeX table:');
+        disp(latexTable);
     end
     return;
 end
@@ -92,6 +117,12 @@ end
 if opts.showTable
     disp('Scenario Performance Summary:');
     disp(summaryTable);
+end
+
+latexTable = formatLatexTable(summaryTable, opts);
+if opts.showLatexTable
+    disp('LaTeX table:');
+    disp(latexTable);
 end
 
 end
@@ -347,4 +378,96 @@ if iscell(value)
     return;
 end
 valueText = string(class(value));
+end
+
+function latexTable = formatLatexTable(summaryTable, opts)
+if isempty(summaryTable)
+    latexTable = "";
+    return;
+end
+
+headers = { ...
+    'Trajectory', 'Controller', 'Parameters', 'RMSE', ...
+    'Mean Effort', 'Max Effort', 'Time (s)'};
+
+columnFormat = opts.latexColumnFormat;
+if isempty(columnFormat)
+    columnFormat = 'lllrrrc';
+end
+
+rowCount = height(summaryTable);
+rows = strings(rowCount, 1);
+for idx = 1:rowCount
+    rowValues = { ...
+        summaryTable.TrajectoryName(idx), ...
+        summaryTable.Controller(idx), ...
+        summaryTable.ParameterSet(idx), ...
+        summaryTable.RMSE(idx), ...
+        summaryTable.ControlEffortMean(idx), ...
+        summaryTable.ControlEffortMax(idx), ...
+        summaryTable.TrajectoryTime(idx)};
+    rows(idx) = formatLatexRow(rowValues, opts.latexPrecision);
+end
+
+latexLines = [
+    "\begin{table}[" + string(opts.latexFloatPosition) + "]"
+    "\centering"
+    "\caption{" + escapeLatex(string(opts.latexCaption)) + "}"
+    "\label{" + escapeLatex(string(opts.latexLabel)) + "}"
+    "\begin{tabular}{" + string(columnFormat) + "}"
+    "\toprule"
+    formatLatexHeader(headers)
+    rows
+    "\bottomrule"
+    "\end{tabular}"
+    "\end{table}"
+    ];
+
+latexTable = strjoin(latexLines, newline);
+end
+
+function headerLine = formatLatexHeader(headers)
+escaped = cellfun(@(h) escapeLatex(string(h)), headers, 'UniformOutput', false);
+headerLine = strjoin(string(escaped), " & ") + " \\";
+end
+
+function rowLine = formatLatexRow(values, precision)
+formatted = strings(1, numel(values));
+for idx = 1:numel(values)
+    value = values{idx};
+    formatted(idx) = formatLatexValue(value, precision);
+end
+rowLine = strjoin(formatted, " & ") + " \\";
+end
+
+function valueText = formatLatexValue(value, precision)
+if isstring(value) || ischar(value)
+    valueText = escapeLatex(string(value));
+    return;
+end
+if isnumeric(value) || islogical(value)
+    if isscalar(value)
+        if isnan(value)
+            valueText = "--";
+        else
+            valueText = string(num2str(value, sprintf('%%.%df', precision)));
+        end
+    else
+        valueText = escapeLatex(string(mat2str(value)));
+    end
+    return;
+end
+valueText = escapeLatex(string(value));
+end
+
+function text = escapeLatex(text)
+text = replace(text, "\", "\\textbackslash ");
+text = replace(text, "_", "\_");
+text = replace(text, "%", "\%");
+text = replace(text, "&", "\&");
+text = replace(text, "#", "\#");
+text = replace(text, "{", "\{");
+text = replace(text, "}", "\}");
+text = replace(text, "~", "\textasciitilde ");
+text = replace(text, "^", "\textasciicircum ");
 end
