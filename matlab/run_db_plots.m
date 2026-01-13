@@ -46,3 +46,19 @@ else
 end
 
 plotRunFromDatabase(databaseFile, args{:});
+
+%% Save figures with descriptive names
+if useRunIndex
+    baseName = sprintf('dbplot_run_%d', runIndex);
+else
+    baseName = sprintf('dbplot_%s_%s_%s_%s', ...
+        scenarioName, controllerType, controllerProfile, solverPreset);
+end
+baseName = regexprep(baseName, '[^A-Za-z0-9_-]', '-');
+
+figHandles = findall(0, 'Type', 'figure');
+for figIndex = 1:numel(figHandles)
+    figName = sprintf('%s_fig%02d', baseName, figIndex);
+    savefig(figHandles(figIndex), [figName '.fig']);
+    saveas(figHandles(figIndex), [figName '.bmp']);
+end
