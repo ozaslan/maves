@@ -80,7 +80,7 @@ end
 scenarioNames = normalizeStringList(opts.scenarioNames);
 trajTypes = normalizeTrajTypeList(opts.trajectoryTypes);
 trajProfiles = normalizeStringList(opts.trajectoryProfiles);
-controllerTypes = normalizeStringList(opts.controllerTypes);
+controllerTypes = normalizeControllerTypeList(opts.controllerTypes);
 controllerProfiles = normalizeStringList(opts.controllerProfiles);
 solverPresets = normalizeStringList(opts.solverPresets);
 
@@ -137,6 +137,8 @@ if isfield(run, 'scenario') && ~isempty(run.scenario)
     end
 end
 
+controllerType = normalizeControllerType(controllerType);
+
 if isfield(run, 'solverPreset') && ~isempty(run.solverPreset)
     solverPreset = string(run.solverPreset);
 elseif isfield(run, 'sim') && isfield(run.sim, 'solver') ...
@@ -171,6 +173,15 @@ values = arrayfun(@normalizeTrajType, values);
 values = values(values ~= "");
 end
 
+function values = normalizeControllerTypeList(values)
+values = normalizeStringList(values);
+if isempty(values)
+    return;
+end
+values = arrayfun(@normalizeControllerType, values);
+values = values(values ~= "");
+end
+
 function value = normalizeTrajType(value)
 if isempty(value)
     value = "";
@@ -179,6 +190,20 @@ end
 value = lower(strtrim(string(value)));
 value = regexprep(value, '^trajpreset', '');
 value = regexprep(value, '^traj', '');
+value = strtrim(value);
+end
+
+function value = normalizeControllerType(value)
+if isempty(value)
+    value = "";
+    return;
+end
+if isa(value, 'function_handle')
+    value = func2str(value);
+end
+value = lower(strtrim(string(value)));
+value = regexprep(value, '^@', '');
+value = regexprep(value, '^controller_?', '');
 value = strtrim(value);
 end
 
