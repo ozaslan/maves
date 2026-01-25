@@ -494,11 +494,10 @@ end
 
 function database = runScenarioSimulations(databaseFile, opts)
 rootDir = getRootFolder();
-matlabDir = fullfile(rootDir, 'matlab');
-addpath(fullfile(matlabDir, 'core'));
-addpath(fullfile(matlabDir, 'utils'));
-addpath(fullfile(matlabDir, 'scenarios'));
-addpath(fullfile(matlabDir, 'soln'));
+addpath(fullfile(rootDir, 'core'));
+addpath(fullfile(rootDir, 'utils'));
+addpath(fullfile(rootDir, 'scenarios'));
+addpath(fullfile(rootDir, 'soln'));
 
 scenarioNames = resolveRunList(opts.scenarioNames, { ...
     'hover-default', ...
