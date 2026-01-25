@@ -24,9 +24,6 @@ function [summaryTable, latexTable] = printScenarioPerformanceTable(databaseFile
 %     latexFloatPosition - LaTeX float position (e.g., "htbp").
 %     latexColumnFormat  - Column format override (e.g., "lllrccc").
 %     latexPrecision     - Numeric precision for LaTeX table output.
-%     writeExcel         - Toggle writing a spreadsheet file.
-%     excelFile          - Excel output filename (.xlsx). Defaults to the
-%                          database folder when writeExcel is true.
 
 arguments
     databaseFile (1, :) char = ''
@@ -44,8 +41,6 @@ arguments
     opts.latexFloatPosition (1, :) char = 'htbp'
     opts.latexColumnFormat (1, :) char = ''
     opts.latexPrecision (1, 1) double = 3
-    opts.writeExcel (1, 1) logical = true
-    opts.excelFile (1, :) char = ''
 end
 
 if isempty(databaseFile)
@@ -124,31 +119,12 @@ if opts.showTable
     disp(summaryTable);
 end
 
-if opts.writeExcel || ~isempty(opts.excelFile)
-    excelFile = resolveExcelFile(opts.excelFile, databaseFile);
-    writetable(summaryTable, excelFile);
-    if opts.showTable
-        fprintf('Saved Excel summary to: %s\n', excelFile);
-    end
-end
-
 latexTable = formatLatexTable(summaryTable, opts);
 if opts.showLatexTable
     disp('LaTeX table:');
     disp(latexTable);
 end
 
-end
-
-function excelFile = resolveExcelFile(excelFile, databaseFile)
-if ~isempty(excelFile)
-    return;
-end
-baseDir = fileparts(databaseFile);
-if isempty(baseDir)
-    baseDir = pwd;
-end
-excelFile = fullfile(baseDir, 'scenario_performance_summary.xlsx');
 end
 
 function runData = selectRuns(runs, opts)

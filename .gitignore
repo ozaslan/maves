@@ -1,0 +1,96 @@
+# ============================================================
+# MATLAB / Simulink
+# ============================================================
+
+# Autosave & backup files
+*.asv
+*.m~
+*.mex*
+*.p
+*.slxc
+*.slx.bak
+*.mdl.bak
+*.autosave
+
+# MATLAB cache and temporary folders
+*/slprj/
+*/sccprj/
+*/codegen/
+*/_rels/
+*/_sfprj/
+*/.matlab/
+*/.SimulinkProject/
+*/.slcache/
+
+# Live Editor temp files
+*.mlx~ 
+*.m~ 
+
+# MATLAB session / preferences
+matlab.prf
+prefdir/
+
+# Simulink generated files
+*.rtw
+*.rpt
+*.map
+*.elf
+*.obj
+*.lib
+*.exp
+*.log
+
+# ============================================================
+# Data & Results (large / generated)
+# ============================================================
+
+# Raw data
+# *.mat
+# *.csv
+*.h5
+*.hdf5
+*.bag
+*.mcap
+
+# Figures & exports (generated)
+*.fig
+*.png
+# *.jpg
+# *.jpeg
+# *.svg
+# *.eps
+# *.pdf
+
+# Simulation logs
+logs/
+results/
+output/
+cache/
+tmp/
+
+# ============================================================
+# Python / MATLAB mixed workflows
+# ============================================================
+
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# ============================================================
+# OS / Editor noise
+# ============================================================
+
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ============================================================
+# User-specific config
+# ============================================================
+
+local_config.m
+paths.m
+env.m
