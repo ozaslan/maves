@@ -24,6 +24,7 @@ function [summaryTable, latexTable] = printScenarioPerformanceTable(databaseFile
 %     latexFloatPosition - LaTeX float position (e.g., "htbp").
 %     latexColumnFormat  - Column format override (e.g., "lllrccc").
 %     latexPrecision     - Numeric precision for LaTeX table output.
+%     runSimulations     - Run scenarios before loading the database.
 
 arguments
     databaseFile (1, :) char = ''
@@ -41,6 +42,7 @@ arguments
     opts.latexFloatPosition (1, :) char = 'htbp'
     opts.latexColumnFormat (1, :) char = ''
     opts.latexPrecision (1, 1) double = 3
+    opts.runSimulations (1, 1) logical = true
 end
 
 if isempty(databaseFile)
@@ -48,16 +50,20 @@ if isempty(databaseFile)
     databaseFile = fullfile(rootDir, 'database', 'scenario_runs.mat');
 end
 
-if ~exist(databaseFile, 'file')
+if opts.runSimulations
+    database = runScenarioSimulations(databaseFile, opts);
+    save(databaseFile, 'database');
+elseif ~exist(databaseFile, 'file')
     error('Database file not found: %s', databaseFile);
 end
 
-loaded = load(databaseFile, 'database');
-if ~isfield(loaded, 'database')
-    error('Database file does not contain a ''database'' struct: %s', databaseFile);
+if ~exist('database', 'var')
+    loaded = load(databaseFile, 'database');
+    if ~isfield(loaded, 'database')
+        error('Database file does not contain a ''database'' struct: %s', databaseFile);
+    end
+    database = loaded.database;
 end
-
-database = loaded.database;
 if ~isfield(database, 'runs') || isempty(database.runs)
     summaryTable = table();
     latexTable = "";
@@ -88,12 +94,14 @@ if isempty(runData)
 end
 
 runCount = numel(runData);
-summaryTable = table('Size', [runCount, 7], ...
+summaryTable = table('Size', [runCount, 9], ...
     'VariableTypes', { ...
-    'string', 'string', 'string', 'double', 'double', 'double', 'double'}, ...
+    'string', 'string', 'string', 'double', 'double', 'double', 'double', ...
+    'double', 'double'}, ...
     'VariableNames', { ...
     'TrajectoryName', 'Controller', 'ParameterSet', 'RMSE', ...
-    'ControlEffortMean', 'ControlEffortMax', 'TrajectoryTime'});
+    'ControlEffortMean', 'ControlEffortMax', 'TrajectoryTime', ...
+    'WallTime', 'Iterations'});
 
 for idx = 1:runCount
     run = runData(idx);
@@ -101,6 +109,7 @@ for idx = 1:runCount
         controllerParams] = getRunDescriptors(run);
     metrics = getRunMetrics(run);
     [effortMean, effortPeak] = getControlEffortMetrics(run);
+    iterations = getRunIterations(run);
 
     summaryTable.TrajectoryName(idx) = selectTrajectoryName(...
         scenarioName, trajType, trajProfile);
@@ -112,6 +121,8 @@ for idx = 1:runCount
     summaryTable.ControlEffortMean(idx) = effortMean;
     summaryTable.ControlEffortMax(idx) = effortPeak;
     summaryTable.TrajectoryTime(idx) = metrics.totalTrajectoryTime;
+    summaryTable.WallTime(idx) = metrics.totalWallTime;
+    summaryTable.Iterations(idx) = iterations;
 end
 
 if opts.showTable
@@ -260,6 +271,13 @@ if isfield(run, 'metrics') && ~isempty(run.metrics)
 end
 end
 
+function iterations = getRunIterations(run)
+iterations = NaN;
+if isfield(run, 'sim') && ~isempty(run.sim) && isfield(run.sim, 'step')
+    iterations = run.sim.step;
+end
+end
+
 function [effortMean, effortPeak] = getControlEffortMetrics(run)
 effortMean = NaN;
 effortPeak = NaN;
@@ -388,11 +406,11 @@ end
 
 headers = { ...
     'Trajectory', 'Controller', 'Parameters', 'RMSE', ...
-    'Mean Effort', 'Max Effort', 'Time (s)'};
+    'Mean Effort', 'Max Effort', 'Time (s)', 'Wall (s)', 'Iters'};
 
 columnFormat = opts.latexColumnFormat;
 if isempty(columnFormat)
-    columnFormat = 'lllrrrc';
+    columnFormat = 'lllrrrrrr';
 end
 
 rowCount = height(summaryTable);
@@ -405,7 +423,9 @@ for idx = 1:rowCount
         summaryTable.RMSE(idx), ...
         summaryTable.ControlEffortMean(idx), ...
         summaryTable.ControlEffortMax(idx), ...
-        summaryTable.TrajectoryTime(idx)};
+        summaryTable.TrajectoryTime(idx), ...
+        summaryTable.WallTime(idx), ...
+        summaryTable.Iterations(idx)};
     rows(idx) = formatLatexRow(rowValues, opts.latexPrecision);
 end
 
@@ -470,4 +490,116 @@ text = replace(text, "{", "\{");
 text = replace(text, "}", "\}");
 text = replace(text, "~", "\textasciitilde ");
 text = replace(text, "^", "\textasciicircum ");
+end
+
+function database = runScenarioSimulations(databaseFile, opts)
+rootDir = getRootFolder();
+matlabDir = fullfile(rootDir, 'matlab');
+addpath(fullfile(matlabDir, 'core'));
+addpath(fullfile(matlabDir, 'utils'));
+addpath(fullfile(matlabDir, 'scenarios'));
+addpath(fullfile(matlabDir, 'soln'));
+
+scenarioNames = resolveRunList(opts.scenarioNames, { ...
+    'hover-default', ...
+    'hover-offset', ...
+    'hover-corner', ...
+    'line-default', ...
+    'line-short', ...
+    'line-long', ...
+    'diamond-default', ...
+    'diamond-compact', ...
+    'diamond-stretched', ...
+    'circle-default', ...
+    'circle-wide', ...
+    'circle-tight'});
+controllerTypes = resolveControllerList(opts.controllerTypes, {'pid', 'lqr'});
+controllerProfiles = resolveRunList(opts.controllerProfiles, {'default', 'aggressive'});
+solverPresets = resolveRunList(opts.solverPresets, {'fast', 'balanced', 'accurate'});
+visualsEnabled = false;
+
+outputDir = fileparts(databaseFile);
+if isempty(outputDir)
+    outputDir = fullfile(rootDir, 'database');
+end
+if ~exist(outputDir, 'dir')
+    mkdir(outputDir);
+end
+
+runCount = numel(scenarioNames) * numel(controllerTypes) * ...
+    numel(controllerProfiles) * numel(solverPresets);
+database = struct();
+database.generatedAt = datetime('now');
+database.runs = repmat(struct( ...
+    'scenarioName', '', ...
+    'solverPreset', '', ...
+    'scenario', struct(), ...
+    'metrics', struct(), ...
+    'log', struct(), ...
+    'sim', struct(), ...
+    'wallTime', NaN), runCount, 1);
+
+runIndex = 1;
+for scenarioIdx = 1:numel(scenarioNames)
+    for controllerIdx = 1:numel(controllerTypes)
+        for profileIdx = 1:numel(controllerProfiles)
+            for presetIdx = 1:numel(solverPresets)
+                scenario = chooseScenario(scenarioNames{scenarioIdx}, ...
+                    'controllerType', controllerTypes{controllerIdx}, ...
+                    'controllerProfile', controllerProfiles{profileIdx}, ...
+                    'visualizationMode', 'deferred', ...
+                    'captureMode', 'none');
+
+                initialize('visualsEnabled', visualsEnabled);
+                setSolverPreset(solverPresets{presetIdx}, 'ode45');
+                global params;
+                global state;
+                setScenario(scenario);
+
+                params.qcopter.visual.plotFreq = 0;
+                params.qcopter.visual.plotTraj = false;
+                initPlots();
+
+                respawn();
+                setTrajectoryGenerator(scenario.trajHandle, scenario.trajParams);
+                setController(scenario.controllerHandle, scenario.controllerParams);
+                setVisualizationMode('deferred');
+                setCaptureMode('none');
+
+                while checkStatus()
+                    updatePhysics();
+                    sleep();
+                end
+
+                metrics = summarizeRun('showPlots', false, 'showTable', false);
+
+                database.runs(runIndex).scenarioName = scenario.name;
+                database.runs(runIndex).solverPreset = solverPresets{presetIdx};
+                database.runs(runIndex).scenario = scenario;
+                database.runs(runIndex).metrics = metrics;
+                database.runs(runIndex).log = state.qcopter;
+                database.runs(runIndex).sim = state.sim;
+                database.runs(runIndex).wallTime = metrics.totalWallTime;
+                runIndex = runIndex + 1;
+            end
+        end
+    end
+end
+end
+
+function values = resolveRunList(values, defaultValues)
+values = normalizeStringList(values);
+if isempty(values)
+    values = string(defaultValues);
+end
+values = lower(string(values));
+values = cellstr(values);
+end
+
+function values = resolveControllerList(values, defaultValues)
+values = normalizeControllerTypeList(values);
+if isempty(values)
+    values = string(defaultValues);
+end
+values = cellstr(values);
 end
